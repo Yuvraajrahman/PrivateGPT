@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #070a0d;
+  --surface: #0f1419;
+  --border: #1f2a37;
+  --accent: #3dd68c;
+  --accent-dim: #1e4d35;
+  --text: #e7eef7;
+  --muted: #8fa3b8;
+}
+
+body {
+  color: var(--text);
+  background: radial-gradient(
+    1200px 600px at 20% -10%,
+    #122018 0%,
+    var(--bg) 55%
+  );
+  min-height: 100vh;
+}
