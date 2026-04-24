@@ -29,6 +29,18 @@ async def lifespan(app: FastAPI):
     app.state.persona_text = (
         persona_path.read_text(encoding="utf-8") if persona_path.exists() else ""
     )
+
+    # Auto-ingest the portfolio knowledge base (idempotent).
+    portfolio_path = Path(__file__).resolve().parent / "PORTFOLIO.md"
+    if portfolio_path.exists() and "PORTFOLIO.md" not in set(store.sources()):
+        text = portfolio_path.read_text(encoding="utf-8", errors="replace")
+        if text.strip():
+            store.add_text(
+                text,
+                source="PORTFOLIO.md",
+                extra_metadata={"kind": "portfolio"},
+            )
+
     # Simple in-memory rate limiting (per-process)
     app.state.ratelimit_chat = FixedWindowRateLimiter(window_seconds=60, max_requests=60)
     app.state.ratelimit_write = FixedWindowRateLimiter(window_seconds=60, max_requests=10)

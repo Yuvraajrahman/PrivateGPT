@@ -27,6 +27,19 @@ function renderPart(part: UIMessage["parts"][number], key: string) {
   }
 }
 
+function TypingIndicator() {
+  return (
+    <div className="flex max-w-[min(100%,720px)] items-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--bg)]/90 px-4 py-3 text-sm">
+      <div className="flex items-center gap-1">
+        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--muted)] [animation-delay:-0.2s]" />
+        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--muted)] [animation-delay:-0.1s]" />
+        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--muted)]" />
+      </div>
+      <span className="text-[var(--muted)]">YuviGPT is thinking…</span>
+    </div>
+  );
+}
+
 export function ChatPanel() {
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -84,8 +97,8 @@ export function ChatPanel() {
       <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
         {messages.length === 0 ? (
           <p className="text-sm text-[var(--muted)]">
-            Upload documents to the API, then ask questions. Citations appear as
-            source cards when retrieval finds chunks.
+            Ingest your portfolio docs into the API, then ask questions. Citations
+            appear as source cards when retrieval finds chunks.
           </p>
         ) : null}
         {messages.map((m) => (
@@ -109,6 +122,11 @@ export function ChatPanel() {
             </div>
           </div>
         ))}
+        {busy ? (
+          <div className="flex justify-start">
+            <TypingIndicator />
+          </div>
+        ) : null}
         <div ref={bottomRef} />
       </div>
 
