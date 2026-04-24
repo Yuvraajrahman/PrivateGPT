@@ -29,7 +29,7 @@ async def chat(
     source_events = [
         sse_source_document(
             c["id"],
-            f"{c['metadata'].get('source', 'doc')} · {c['id'][:8]}",
+            f"Source · {c['id'][:8]}",
         )
         for c in context_chunks
     ]

@@ -29,6 +29,68 @@ export default function HomePage() {
         </ul>
       </section>
 
+      <section className="grid gap-4 md:grid-cols-3">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)]/60 p-5 md:col-span-2">
+          <h2 className="text-base font-semibold tracking-tight">How it works</h2>
+          <ol className="mt-3 space-y-2 text-sm text-[var(--muted)]">
+            <li>
+              <span className="font-medium text-[var(--text)]">1) Ingest</span> — your
+              portfolio content is chunked and embedded, then stored in Chroma.
+            </li>
+            <li>
+              <span className="font-medium text-[var(--text)]">2) Retrieve</span> — for
+              each question, YuviGPT runs hybrid search (BM25 + dense) to find the most
+              relevant chunks.
+            </li>
+            <li>
+              <span className="font-medium text-[var(--text)]">3) Re-rank</span> — a
+              cross-encoder reorders results for better precision.
+            </li>
+            <li>
+              <span className="font-medium text-[var(--text)]">4) Generate</span> — the
+              LLM answers using the retrieved context and streams tokens live to the UI.
+            </li>
+          </ol>
+        </div>
+
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)]/60 p-5">
+          <h2 className="text-base font-semibold tracking-tight">Tech</h2>
+          <ul className="mt-3 space-y-2 text-sm text-[var(--muted)]">
+            <li>
+              <span className="font-medium text-[var(--text)]">UI</span> — Next.js 15 +
+              React + Tailwind
+            </li>
+            <li>
+              <span className="font-medium text-[var(--text)]">Streaming</span> — Vercel
+              AI SDK (SSE)
+            </li>
+            <li>
+              <span className="font-medium text-[var(--text)]">API</span> — FastAPI +
+              httpx
+            </li>
+            <li>
+              <span className="font-medium text-[var(--text)]">RAG</span> — Chroma +
+              BM25 + SentenceTransformers + cross-encoder rerank
+            </li>
+            <li>
+              <span className="font-medium text-[var(--text)]">LLM</span> — LM Studio /
+              Ollama (OpenAI-compatible)
+            </li>
+          </ul>
+        </div>
+
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)]/60 p-5 md:col-span-3">
+          <h2 className="text-base font-semibold tracking-tight">How I built it</h2>
+          <p className="mt-3 text-sm text-[var(--muted)]">
+            I wanted a portfolio assistant that runs locally and stays grounded in real
+            data. So I built a hybrid RAG pipeline (dense + sparse) with re-ranking for
+            accuracy, added streaming for a “feels instant” UI, and made the LLM backend
+            pluggable so it works with local inference (LM Studio/Ollama) or any
+            OpenAI-compatible server.
+          </p>
+        </div>
+      </section>
+
       <ChatPanel />
 
       <footer className="border-t border-[var(--border)] pt-8 text-center text-xs text-[var(--muted)]">

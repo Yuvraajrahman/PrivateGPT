@@ -35,7 +35,6 @@ async def chat_websocket(websocket: WebSocket, request: Request) -> None:
                 "sources": [
                     {
                         "id": c["id"],
-                        "source": c["metadata"].get("source"),
                         "preview": c["text"][:240],
                     }
                     for c in context_chunks

@@ -19,7 +19,7 @@ function renderPart(part: UIMessage["parts"][number], key: string) {
           className="mt-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs text-[var(--muted)]"
         >
           <span className="font-mono text-[var(--accent)]">source</span>{" "}
-          {part.title ?? part.sourceId}
+          {part.sourceId ? `Source · ${part.sourceId.slice(0, 8)}` : "Source"}
         </div>
       );
     default:
