@@ -34,7 +34,7 @@ class ChunkStore:
         )
         self._client = chromadb.PersistentClient(path=str(persist_dir))
         self._collection = self._client.get_or_create_collection(
-            name="privategpt",
+            name="yuvigpt",
             embedding_function=self._ef,
             metadata={"hnsw:space": "cosine"},
         )
@@ -93,9 +93,9 @@ class ChunkStore:
 
     def clear(self) -> None:
         with self._lock:
-            self._client.delete_collection("privategpt")
+            self._client.delete_collection("yuvigpt")
             self._collection = self._client.get_or_create_collection(
-                name="privategpt",
+                name="yuvigpt",
                 embedding_function=self._ef,
                 metadata={"hnsw:space": "cosine"},
             )
@@ -137,6 +137,19 @@ class ChunkStore:
     @property
     def chunk_count(self) -> int:
         return len(self._chunk_ids)
+
+    def sources(self) -> list[str]:
+        seen: set[str] = set()
+        out: list[str] = []
+        for m in self._metadatas:
+            src = (m or {}).get("source")
+            if not src:
+                continue
+            if src in seen:
+                continue
+            seen.add(src)
+            out.append(str(src))
+        return out
 
     def get_texts_for_ids(self, ids: list[str]) -> dict[str, tuple[str, dict]]:
         out: dict[str, tuple[str, dict]] = {}

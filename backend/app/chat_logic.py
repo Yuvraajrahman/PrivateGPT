@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 SYSTEM_BASE = (
-    "You are PrivateGPT, a private assistant running on the user's hardware. "
+    "You are YuviGPT, a private assistant running on the user's hardware. "
     "When context excerpts are provided, ground answers in them and cite which "
     "excerpt you used by number (e.g. [1]). If context is missing or insufficient, "
     "say so clearly before using general knowledge."
@@ -11,6 +11,7 @@ SYSTEM_BASE = (
 def build_llm_messages(
     messages: list[dict[str, str]],
     context_chunks: list[dict],
+    persona_text: str | None = None,
 ) -> list[dict[str, str]]:
     non_system = [m for m in messages if m.get("role") != "system"]
     context_block = "\n\n".join(
@@ -18,6 +19,8 @@ def build_llm_messages(
         for i, c in enumerate(context_chunks)
     )
     system_content = SYSTEM_BASE
+    if persona_text and persona_text.strip():
+        system_content += f"\n\n---\nPersona (follow this style):\n{persona_text.strip()}\n---"
     if context_block.strip():
         system_content += f"\n\n---\nContext:\n{context_block}\n---"
     return [{"role": "system", "content": system_content}, *non_system]

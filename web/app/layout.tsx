@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PrivateGPT",
+  title: "YuviGPT",
   description:
     "Self-hosted RAG chat with hybrid retrieval — keep prompts and documents on your hardware.",
 };

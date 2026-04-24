@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from app.config import get_settings
+from app.security import require_api_key
 
 router = APIRouter(prefix="/v1/notion", tags=["notion"])
 
@@ -24,7 +25,10 @@ def _flatten_notion_blocks(blocks: list[dict]) -> str:
 
 
 @router.post("/sync")
-async def sync_notion_page(request: Request) -> dict:
+async def sync_notion_page(
+    request: Request,
+    _auth: None = Depends(require_api_key),
+) -> dict:
     settings = get_settings()
     if not settings.notion_token or not settings.notion_page_id:
         raise HTTPException(

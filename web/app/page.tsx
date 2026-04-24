@@ -8,7 +8,7 @@ export default function HomePage() {
           Self-hosted · Hybrid RAG
         </p>
         <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
-          PrivateGPT
+          YuviGPT
         </h1>
         <p className="max-w-2xl text-lg text-[var(--muted)]">
           Chat UI for your FastAPI stack: BM25 + dense retrieval, cross-encoder

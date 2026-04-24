@@ -1,4 +1,4 @@
-# PrivateGPT
+# YuviGPT
 
 Self-hosted RAG chatbot: **FastAPI** backend (hybrid BM25 + dense retrieval, cross-encoder re-ranking, Chroma, optional Notion ingest) and a **Next.js** web UI that streams with the **Vercel AI SDK** (SSE). LLMs are pluggable via **LM Studio** (OpenAI-compatible), **Ollama**, or any other server that speaks the same HTTP API.
 
@@ -24,7 +24,7 @@ python3 -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cp ../.env.example .env
-# Edit .env: OPENAI_BASE_URL, CHAT_MODEL, LLM_PROVIDER=openai_compatible
+# Edit .env: RAG_API_KEY, OPENAI_BASE_URL, CHAT_MODEL, LLM_PROVIDER=openai_compatible
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
@@ -41,7 +41,7 @@ curl -F "file=@./notes.md" http://127.0.0.1:8000/v1/documents/upload
 ```bash
 cd web
 cp ../.env.example .env.local
-# Set: RAG_BACKEND_URL=http://127.0.0.1:8000
+# Set: RAG_BACKEND_URL=http://127.0.0.1:8000 and RAG_API_KEY=...
 npm install
 npm run dev
 ```

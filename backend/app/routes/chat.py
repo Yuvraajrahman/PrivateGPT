@@ -1,20 +1,25 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 
 from app.chat_logic import build_llm_messages, last_user_query
 from app.rag.llm_client import stream_llm
 from app.rag.streaming import new_message_ids, sse_source_document, stream_ui_message
 from app.schemas import normalize_messages
+from app.security import require_api_key
 
 router = APIRouter(tags=["chat"])
 
 
 @router.post("/v1/chat")
-async def chat(request: Request) -> StreamingResponse:
+async def chat(
+    request: Request,
+    _auth: None = Depends(require_api_key),
+) -> StreamingResponse:
     settings = request.app.state.settings
     retriever = request.app.state.retriever
+    persona_text = getattr(request.app.state, "persona_text", "")
 
     body = await request.json()
     messages = normalize_messages(body.get("messages") or [])
@@ -29,7 +34,7 @@ async def chat(request: Request) -> StreamingResponse:
         for c in context_chunks
     ]
 
-    llm_messages = build_llm_messages(messages, context_chunks)
+    llm_messages = build_llm_messages(messages, context_chunks, persona_text=persona_text)
 
     mid, tid = new_message_ids()
     token_stream = stream_llm(settings, llm_messages)

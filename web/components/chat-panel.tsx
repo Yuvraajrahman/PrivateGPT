@@ -126,7 +126,7 @@ export function ChatPanel() {
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Message PrivateGPT…"
+            placeholder="Message YuviGPT…"
             rows={2}
             className="min-h-[52px] flex-1 resize-y rounded-xl border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm outline-none ring-[var(--accent)]/30 placeholder:text-[var(--muted)] focus:border-[var(--accent)]/50 focus:ring-2"
             disabled={busy}

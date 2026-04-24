@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     notion_token: str | None = None
     notion_page_id: str | None = None
 
+    # Backend API auth (required)
+    rag_api_key: str | None = None
+
     cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
 
     @property

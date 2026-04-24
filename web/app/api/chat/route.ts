@@ -2,11 +2,24 @@ export const maxDuration = 60;
 
 export async function POST(req: Request) {
   const base = process.env.RAG_BACKEND_URL;
+  const apiKey = process.env.RAG_API_KEY;
   if (!base) {
     return new Response(
       JSON.stringify({
         error:
           "RAG_BACKEND_URL is not set. Add it in Vercel project env (or web/.env.local) to your reachable FastAPI URL.",
+      }),
+      {
+        status: 500,
+        headers: { "content-type": "application/json" },
+      },
+    );
+  }
+  if (!apiKey) {
+    return new Response(
+      JSON.stringify({
+        error:
+          "RAG_API_KEY is not set. Add it in Vercel project env (or web/.env.local) to match backend RAG_API_KEY.",
       }),
       {
         status: 500,
@@ -21,6 +34,7 @@ export async function POST(req: Request) {
     method: "POST",
     headers: {
       "content-type": req.headers.get("content-type") || "application/json",
+      authorization: `Bearer ${apiKey}`,
     },
     body,
   });
