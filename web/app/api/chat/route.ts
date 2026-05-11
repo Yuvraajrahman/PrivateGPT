@@ -1,4 +1,7 @@
-export const maxDuration = 60;
+// Wall-clock limit includes the entire streamed response. 60s is easy to exceed
+// with local LLMs + RAG; Hobby allows up to 300s (see Vercel function duration docs).
+export const maxDuration = 300;
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   const base = process.env.RAG_BACKEND_URL;
@@ -57,7 +60,6 @@ export async function POST(req: Request) {
       "x-vercel-ai-ui-message-stream":
         upstream.headers.get("x-vercel-ai-ui-message-stream") || "v1",
       "cache-control": "no-cache",
-      connection: "keep-alive",
     },
   });
 }

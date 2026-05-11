@@ -53,7 +53,7 @@ Open [http://localhost:3000](http://localhost:3000) and chat.
 1. Connect this repo and set the Vercel **Root Directory** to `web`.
 2. Add environment variable **`RAG_BACKEND_URL`** to the **public URL** where your FastAPI instance is reachable (for a home PC, use something like Cloudflare Tunnel, Tailscale Funnel, or another HTTPS reverse proxy you control).
 3. On the machine running FastAPI, set **`CORS_ORIGINS`** to include your Vercel origin (for example `https://your-app.vercel.app`) so browser clients can call the API if you ever point the frontend at the API directly.
-4. Redeploy. Long generations may require a Vercel Pro plan or similar for higher function timeouts; `web/app/api/chat/route.ts` sets `maxDuration = 60`.
+4. Redeploy. Very long streams may hit Vercel’s function wall-clock limit; `web/app/api/chat/route.ts` sets `maxDuration = 300` (Hobby max). Pro allows higher (see Vercel function duration docs).
 
 ## Ollama instead of LM Studio
 
