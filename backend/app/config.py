@@ -49,9 +49,19 @@ class Settings(BaseSettings):
         "http://localhost:3005,http://127.0.0.1:3005"
     )
 
+    # Comma-separated Git host logins to strip from context + replies (set empty to disable).
+    privategpt_redact_handles: str = "Yuvraajrahman"
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def redact_handle_list(self) -> list[str]:
+        raw = (self.privategpt_redact_handles or "").strip()
+        if not raw:
+            return []
+        return [h.strip() for h in raw.split(",") if h.strip()]
 
 
 def get_settings() -> Settings:

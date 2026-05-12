@@ -4,7 +4,12 @@ import json
 
 from fastapi import APIRouter, Request, WebSocket, WebSocketDisconnect
 
-from app.chat_logic import build_llm_messages, last_user_query, redact_git_remote_urls
+from app.chat_logic import (
+    apply_private_redaction,
+    build_llm_messages,
+    last_user_query,
+    scrub_git_urls_from_stream,
+)
 from app.rag.llm_client import stream_llm
 from app.schemas import normalize_messages
 from app.security import require_api_key_websocket
@@ -27,7 +32,13 @@ async def chat_websocket(websocket: WebSocket, request: Request) -> None:
 
         query = last_user_query(messages)
         context_chunks = retriever.retrieve(query) if query else []
-        llm_messages = build_llm_messages(messages, context_chunks, persona_text=persona_text)
+        handles = settings.redact_handle_list
+        llm_messages = build_llm_messages(
+            messages,
+            context_chunks,
+            persona_text=persona_text,
+            redact_handles=handles,
+        )
 
         await websocket.send_json(
             {
@@ -35,14 +46,20 @@ async def chat_websocket(websocket: WebSocket, request: Request) -> None:
                 "sources": [
                     {
                         "id": c["id"],
-                        "preview": redact_git_remote_urls((c.get("text") or ""))[:240],
+                        "preview": apply_private_redaction(
+                            (c.get("text") or ""),
+                            handles,
+                        )[:240],
                     }
                     for c in context_chunks
                 ],
             }
         )
 
-        async for piece in stream_llm(settings, llm_messages):
+        async for piece in scrub_git_urls_from_stream(
+            stream_llm(settings, llm_messages),
+            handles,
+        ):
             if piece:
                 await websocket.send_json({"type": "delta", "text": piece})
         await websocket.send_json({"type": "done"})

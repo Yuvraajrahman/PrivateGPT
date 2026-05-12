@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 
-from app.chat_logic import build_llm_messages, last_user_query
+from app.chat_logic import build_llm_messages, last_user_query, scrub_git_urls_from_stream
 from app.rag.llm_client import stream_llm
 from app.rag.streaming import new_message_ids, sse_source_document, stream_ui_message
 from app.schemas import normalize_messages
@@ -34,10 +34,19 @@ async def chat(
         for c in context_chunks
     ]
 
-    llm_messages = build_llm_messages(messages, context_chunks, persona_text=persona_text)
+    handles = settings.redact_handle_list
+    llm_messages = build_llm_messages(
+        messages,
+        context_chunks,
+        persona_text=persona_text,
+        redact_handles=handles,
+    )
 
     mid, tid = new_message_ids()
-    token_stream = stream_llm(settings, llm_messages)
+    token_stream = scrub_git_urls_from_stream(
+        stream_llm(settings, llm_messages),
+        handles,
+    )
 
     async def event_stream():
         async for line in stream_ui_message(mid, tid, token_stream, source_events):
