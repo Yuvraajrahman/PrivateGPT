@@ -4,6 +4,8 @@ import { useChat } from "@ai-sdk/react";
 import type { UIMessage } from "ai";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { BackendConnectionBanner } from "@/components/backend-connection-banner";
+
 function renderPart(part: UIMessage["parts"][number], key: string) {
   switch (part.type) {
     case "text":
@@ -95,6 +97,7 @@ export function ChatPanel() {
       </header>
 
       <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
+        <BackendConnectionBanner />
         {messages.length === 0 ? (
           <p className="text-sm text-[var(--muted)]">
             Ingest your portfolio docs into the API, then ask questions. Citations
