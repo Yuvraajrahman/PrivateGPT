@@ -1,9 +1,11 @@
 {
   "name": "privategpt",
   "private": true,
-  "description": "One command local dev: start LM Studio (:1234), then `npm run dev` — FastAPI + Next.js.",
+  "description": "One command: tunnel + FastAPI + Next.js (LM Studio manual on :1234).",
   "scripts": {
-    "dev": "node scripts/dev-banner.cjs && concurrently -k -n api,web -c blue,magenta \"node scripts/dev-backend.cjs\" \"npm run dev --prefix web\"",
+    "start:chatbot": "node scripts/start-local-chatbot.cjs",
+    "dev": "node scripts/dev-banner.cjs && concurrently -n tunnel,api,web -c cyan,blue,magenta \"node scripts/dev-tunnel.cjs\" \"node scripts/dev-backend.cjs\" \"npm run dev --prefix web\"",
+    "dev:local": "node scripts/dev-banner.cjs && concurrently -k -n api,web -c blue,magenta \"node scripts/dev-backend.cjs\" \"npm run dev --prefix web\"",
     "dev:web": "npm run dev --prefix web",
     "dev:api": "node scripts/dev-backend.cjs",
     "build": "npm run build --prefix web",
