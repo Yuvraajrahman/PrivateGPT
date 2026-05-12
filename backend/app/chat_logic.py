@@ -6,24 +6,61 @@ from collections.abc import AsyncIterator, Sequence
 _REDACT = "[repository link omitted]"
 _REDACT_MD = "[link omitted]"
 _REDACT_HANDLE = "[identity omitted]"
+_REDACT_DEPLOY = "[deployment link omitted]"
 
-# Markdown: [label](https://github.com/...)
+# Markdown links — optional **bold** / _italic_ around the whole [text](url).
 _MD_GIT_LINK = re.compile(
-    r"(?i)\[[^\]]{0,500}\]\(\s*https?://(?:www\.)?(?:github|gitlab)\.com[^)]{0,800}\)"
+    r"(?i)(?:\*{1,2}|_{1,2})?"
+    r"\[[^\]]{0,500}\]\(\s*https?://(?:www\.)?(?:github|gitlab)\.com[^)]{0,800}\)"
+    r"(?:\*{1,2}|_{1,2})?",
 )
 _MD_BB_LINK = re.compile(
-    r"(?i)\[[^\]]{0,500}\]\(\s*https?://(?:www\.)?bitbucket\.org[^)]{0,800}\)"
+    r"(?i)(?:\*{1,2}|_{1,2})?"
+    r"\[[^\]]{0,500}\]\(\s*https?://(?:www\.)?bitbucket\.org[^)]{0,800}\)"
+    r"(?:\*{1,2}|_{1,2})?",
+)
+_MD_VERCEL_LINK = re.compile(
+    r"(?i)(?:\*{1,2}|_{1,2})?"
+    r"\[[^\]]{0,500}\]\(\s*https?://[^)]*\.vercel\.app[^)]{0,800}\)"
+    r"(?:\*{1,2}|_{1,2})?",
+)
+_MD_NETLIFY_LINK = re.compile(
+    r"(?i)(?:\*{1,2}|_{1,2})?"
+    r"\[[^\]]{0,500}\]\(\s*https?://[^)]*\.netlify\.app[^)]{0,800}\)"
+    r"(?:\*{1,2}|_{1,2})?",
+)
+# Autolink <https://github.com/...>
+_GIT_ANGLE = re.compile(
+    r"(?i)<\s*https?://(?:www\.)?(?:github|gitlab)\.com[^>\s]{0,800}\s*>",
+)
+_GIT_ANGLE_BB = re.compile(
+    r"(?i)<\s*https?://(?:www\.)?bitbucket\.org[^>\s]{0,800}\s*>",
+)
+_VERCEL_ANGLE = re.compile(r"(?i)<\s*https?://[^>\s]*\.vercel\.app[^>\s]{0,800}\s*>")
+_NETLIFY_ANGLE = re.compile(r"(?i)<\s*https?://[^>\s]*\.netlify\.app[^>\s]{0,800}\s*>")
+# **https://github.com/...** (emphasis directly around URL, no space inside stars)
+_GIT_HTTP_EMPH = re.compile(
+    r"(?i)(?:\*{1,2}|_{1,2})"
+    r"(?:https?://(?:www\.)?(?:github|gitlab)\.com/[^\s\])>'\"]+|"
+    r"https?://(?:www\.)?bitbucket\.org/[^\s\])>'\"]+)"
+    r"(?:\*{1,2}|_{1,2})",
+)
+_SITE_HTTP_EMPH = re.compile(
+    r"(?i)(?:\*{1,2}|_{1,2})https?://[\w.-]*\.vercel\.app[^\s\])>'\"]+(?:\*{1,2}|_{1,2})",
 )
 
 # HTTPS remotes and common Git hosting (markdown-safe: stops before closing paren/quote).
 _GIT_HTTP = re.compile(
     r"(?i)\bhttps?://(?:www\.)?(?:github|gitlab)\.com/[^\s\])>'\"]+|"
-    r"\bhttps?://(?:www\.)?bitbucket\.org/[^\s\])>'\"]+"
+    r"\bhttps?://(?:www\.)?bitbucket\.org/[^\s\])>'\"]+",
 )
 _GIT_HTTP_BARE = re.compile(
     r"(?i)\b(?:www\.)?(?:github|gitlab)\.com/[\w./-]+(?:\.git)?\b|"
-    r"\b(?:www\.)?bitbucket\.org/[\w./-]+(?:\.git)?\b"
+    r"\b(?:www\.)?bitbucket\.org/[\w./-]+(?:\.git)?\b",
 )
+_VERCEL_HTTP = re.compile(r"(?i)\bhttps?://[\w.-]+\.vercel\.app[^\s\])>'\"`]*")
+_NETLIFY_HTTP = re.compile(r"(?i)\bhttps?://[\w.-]+\.netlify\.app[^\s\])>'\"`]*")
+_PAGES_DEV_HTTP = re.compile(r"(?i)\bhttps?://[\w.-]+\.pages\.dev[^\s\])>'\"`]*")
 _GIST_HTTP = re.compile(r"(?i)\bhttps?://gist\.github\.com/[^\s\])>'\"]+")
 _RAW_GITHUB = re.compile(r"(?i)\bhttps?://raw\.githubusercontent\.com/[^\s\])>'\"]+")
 _GIT_SSH = re.compile(r"(?i)\bgit@[\w.-]+:[\w./-]+(?:\.git)?\b")
@@ -31,17 +68,34 @@ _SSH_URL = re.compile(r"(?i)\bssh://[^\s\])>'\"]+")
 
 
 def redact_git_remote_urls(text: str) -> str:
-    """Strip common Git hosting URLs before they reach the model (or from streamed output)."""
+    """Strip Git host URLs, deployment preview URLs (Vercel, etc.), and related markdown."""
     if not text:
         return text
-    t = _MD_GIT_LINK.sub(_REDACT_MD, text)
-    t = _MD_BB_LINK.sub(_REDACT_MD, t)
-    t = _GIT_HTTP.sub(_REDACT, t)
-    t = _GIT_HTTP_BARE.sub(_REDACT, t)
-    t = _GIST_HTTP.sub(_REDACT, t)
-    t = _RAW_GITHUB.sub(_REDACT, t)
-    t = _GIT_SSH.sub(_REDACT, t)
-    t = _SSH_URL.sub(_REDACT, t)
+    t = text
+    for _ in range(12):
+        n = t
+        n = _MD_VERCEL_LINK.sub(_REDACT_MD, n)
+        n = _MD_NETLIFY_LINK.sub(_REDACT_MD, n)
+        n = _MD_GIT_LINK.sub(_REDACT_MD, n)
+        n = _MD_BB_LINK.sub(_REDACT_MD, n)
+        n = _VERCEL_ANGLE.sub(_REDACT_DEPLOY, n)
+        n = _NETLIFY_ANGLE.sub(_REDACT_DEPLOY, n)
+        n = _GIT_ANGLE.sub(_REDACT_MD, n)
+        n = _GIT_ANGLE_BB.sub(_REDACT_MD, n)
+        n = _SITE_HTTP_EMPH.sub(_REDACT_DEPLOY, n)
+        n = _GIT_HTTP_EMPH.sub(_REDACT, n)
+        n = _VERCEL_HTTP.sub(_REDACT_DEPLOY, n)
+        n = _NETLIFY_HTTP.sub(_REDACT_DEPLOY, n)
+        n = _PAGES_DEV_HTTP.sub(_REDACT_DEPLOY, n)
+        n = _GIT_HTTP.sub(_REDACT, n)
+        n = _GIT_HTTP_BARE.sub(_REDACT, n)
+        n = _GIST_HTTP.sub(_REDACT, n)
+        n = _RAW_GITHUB.sub(_REDACT, n)
+        n = _GIT_SSH.sub(_REDACT, n)
+        n = _SSH_URL.sub(_REDACT, n)
+        if n == t:
+            break
+        t = n
     return t
 
 
@@ -64,25 +118,31 @@ def apply_private_redaction(text: str, handles: Sequence[str]) -> str:
     return redact_identity_handles(redact_git_remote_urls(text), handles)
 
 
-def strip_trailing_incomplete_git_url(text: str) -> str:
-    """Remove an unfinished https://github.com/... tail (streaming flush)."""
-    return re.sub(
+def strip_trailing_incomplete_sensitive_url(text: str) -> str:
+    """Remove unfinished https tails for Git hosts and common deploy domains (streaming flush)."""
+    t = text
+    t = re.sub(
         r"(?i)https?://(?:www\.)?(?:github|gitlab)\.com(?:[/\w.-]*)?$",
         "",
-        re.sub(r"(?i)https?://(?:www\.)?bitbucket\.org(?:[/\w.-]*)?$", "", text),
-    ).rstrip()
+        t,
+    )
+    t = re.sub(r"(?i)https?://(?:www\.)?bitbucket\.org(?:[/\w.-]*)?$", "", t)
+    t = re.sub(r"(?i)https?://[\w.-]*\.vercel\.app(?:[/\w.-]*)?$", "", t)
+    t = re.sub(r"(?i)https?://[\w.-]*\.netlify\.app(?:[/\w.-]*)?$", "", t)
+    t = re.sub(r"(?i)https?://[\w.-]*\.pages\.dev(?:[/\w.-]*)?$", "", t)
+    return t.rstrip()
 
 
 def _stream_redact_buffer(buf: str, handles: Sequence[str]) -> str:
     u = redact_git_remote_urls(buf)
-    u = strip_trailing_incomplete_git_url(u)
+    u = strip_trailing_incomplete_sensitive_url(u)
     return redact_identity_handles(u, handles)
 
 
 async def scrub_git_urls_from_stream(
     stream: AsyncIterator[str],
     handles: Sequence[str],
-    hold: int = 128,
+    hold: int = 160,
 ) -> AsyncIterator[str]:
     """Redact URLs + identity markers across token chunks; hold back a tail for partial URLs."""
     buf = ""
@@ -115,6 +175,11 @@ SYSTEM_BASE = (
     "When context excerpts are provided, ground answers in them and cite which "
     "excerpt you used by number (e.g. [1]). If context is missing or insufficient, "
     "say so clearly before using general knowledge. "
+    "Communication: default to clear, well-structured answers—open with a direct line, "
+    "then add useful detail (mechanism, tradeoffs, or how something fits together). "
+    "Avoid one-line brush-offs unless the user asks for brevity; use short paragraphs or "
+    "bullets when they improve clarity. Use light signposting (e.g. “First…”, “Separately…”, "
+    "“Net:…”) so the reasoning is easy to follow. "
     "Do not share Git hosting URLs (GitHub, GitLab, Bitbucket), git@… clone strings, "
     "or other repository web links—even if they appeared in context before redaction. "
     "Never output markdown links to github.com / gitlab.com / bitbucket.org, and never "
@@ -123,7 +188,13 @@ SYSTEM_BASE = (
     "(they may appear as [identity omitted] in context). "
     "If the user asks for a git address, GitHub username, profile URL, or clone link, refuse briefly "
     "and offer project names or skills instead. "
-    "Refer to repositories by project name only."
+    "Refer to repositories by project name only. "
+    "Do not share live deployment or portfolio site URLs (e.g. *.vercel.app, *.netlify.app, "
+    "*.pages.dev), backticked links, or which exact branded host serves the site—even from context. "
+    "If asked for “the website”, “portfolio URL”, “where is it hosted”, or similar: confirm in general "
+    "terms that he has a portfolio and describe themes, stack, or projects from context without URLs "
+    "or hostnames; then redirect (“What part of the work do you want to dig into—e.g. RAG, DCWB, …?”). "
+    "Never paste [deployment link omitted] as something to visit—treat it as private."
 )
 
 
