@@ -33,14 +33,28 @@ export async function POST(req: Request) {
 
   const body = await req.text();
   const url = `${base.replace(/\/$/, "")}/v1/chat`;
-  const upstream = await fetch(url, {
-    method: "POST",
-    headers: {
-      "content-type": req.headers.get("content-type") || "application/json",
-      authorization: `Bearer ${apiKey}`,
-    },
-    body,
-  });
+  let upstream: Response;
+  try {
+    upstream = await fetch(url, {
+      method: "POST",
+      headers: {
+        "content-type": req.headers.get("content-type") || "application/json",
+        authorization: `Bearer ${apiKey}`,
+      },
+      body,
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return new Response(
+      JSON.stringify({
+        error: `Cannot reach the RAG API at ${url} (${msg}). Start FastAPI on port 8000 (e.g. cd backend; .\\.venv\\Scripts\\Activate.ps1; uvicorn app.main:app --reload --host 0.0.0.0 --port 8000). LM Studio on :1234 is separate: set OPENAI_BASE_URL in backend/.env; the UI proxy uses RAG_BACKEND_URL (typically http://127.0.0.1:8000).`,
+      }),
+      {
+        status: 502,
+        headers: { "content-type": "application/json" },
+      },
+    );
+  }
 
   if (!upstream.ok) {
     const text = await upstream.text();

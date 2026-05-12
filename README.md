@@ -18,6 +18,8 @@ Your documents and prompts stay on hardware you control; the UI can be deployed 
 
 ### 2. Backend
 
+Keep **LM Studio** (or your LLM) running on its own port (often **1234**). That is **not** the same process as YuviGPT: `OPENAI_BASE_URL` in `backend/.env` should point at LM Studio (`http://127.0.0.1:1234/v1`), while **FastAPI** listens on **8000** for the Next.js proxy (`RAG_BACKEND_URL`).
+
 ```bash
 cd backend
 python3 -m venv .venv
@@ -27,6 +29,8 @@ cp ../.env.example .env
 # Edit .env: RAG_API_KEY, OPENAI_BASE_URL, CHAT_MODEL, LLM_PROVIDER=openai_compatible
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
+
+Windows shortcut from `backend/`: `powershell -ExecutionPolicy Bypass -File .\run-dev.ps1` (after venv + `pip install` once).
 
 First run will download embedding and cross-encoder models (SentenceTransformers).
 
