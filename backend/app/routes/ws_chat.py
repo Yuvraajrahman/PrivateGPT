@@ -4,7 +4,7 @@ import json
 
 from fastapi import APIRouter, Request, WebSocket, WebSocketDisconnect
 
-from app.chat_logic import build_llm_messages, last_user_query
+from app.chat_logic import build_llm_messages, last_user_query, redact_git_remote_urls
 from app.rag.llm_client import stream_llm
 from app.schemas import normalize_messages
 from app.security import require_api_key_websocket
@@ -35,7 +35,7 @@ async def chat_websocket(websocket: WebSocket, request: Request) -> None:
                 "sources": [
                     {
                         "id": c["id"],
-                        "preview": c["text"][:240],
+                        "preview": redact_git_remote_urls((c.get("text") or ""))[:240],
                     }
                     for c in context_chunks
                 ],

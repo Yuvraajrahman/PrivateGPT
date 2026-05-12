@@ -3,6 +3,7 @@
 import dns from "node:dns";
 
 import {
+  hintForBackendFetchFailure,
   isLocalhostBackendUrl,
   isRunningOnVercel,
   normalizeRagBackendBase,
@@ -80,9 +81,10 @@ export async function POST(req: Request) {
     });
   } catch (e) {
     const detail = describeFetchFailure(e);
+    const extra = hintForBackendFetchFailure(detail);
     return new Response(
       JSON.stringify({
-        error: `Cannot reach the RAG API at ${url} (${detail}). Hosted (Vercel): your PC must expose FastAPI over HTTPS (e.g. cloudflared) with RAG_BACKEND_URL set to that URL in Vercel env; keep the tunnel + uvicorn + LM Studio running. Quick trycloudflare URLs stop working when cloudflared exits or the URL changes—use a named tunnel or stable ingress. Local dev: RAG_BACKEND_URL=http://127.0.0.1:8000 with FastAPI on 8000.`,
+        error: `Cannot reach the RAG API at ${url} (${detail}). Hosted (Vercel): your PC must expose FastAPI over HTTPS (e.g. cloudflared) with RAG_BACKEND_URL set to that URL in Vercel env; keep the tunnel + uvicorn + LM Studio running. Quick trycloudflare URLs stop working when cloudflared exits or the URL changes—use a named tunnel or stable ingress. Local dev: RAG_BACKEND_URL=http://127.0.0.1:8000 with FastAPI on 8000.${extra ? ` ${extra}` : ""}`,
       }),
       {
         status: 502,

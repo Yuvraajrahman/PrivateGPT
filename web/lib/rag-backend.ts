@@ -27,3 +27,14 @@ export function isLocalhostBackendUrl(base: string): boolean {
 export function isRunningOnVercel(): boolean {
   return process.env.VERCEL === "1";
 }
+
+/** Extra context when fetch() to the tunneled FastAPI fails (shown in API JSON errors). */
+export function hintForBackendFetchFailure(detail: string): string | undefined {
+  if (/ENOTFOUND|getaddrinfo/i.test(detail)) {
+    return "Tunnel hostname no longer resolves. Quick trycloudflare URLs die when cloudflared stops or restarts. Run cloudflared again, copy the NEW https URL, set Vercel → Settings → Environment Variables → RAG_BACKEND_URL (Production), then Redeploy.";
+  }
+  if (/ECONNREFUSED|connection refused/i.test(detail)) {
+    return "Connection refused at that host:port—confirm uvicorn is listening (e.g. http://127.0.0.1:8000) and the tunnel points to FastAPI, not LM Studio.";
+  }
+  return undefined;
+}

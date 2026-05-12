@@ -1,6 +1,7 @@
 import dns from "node:dns";
 
 import {
+  hintForBackendFetchFailure,
   isLocalhostBackendUrl,
   isRunningOnVercel,
   normalizeRagBackendBase,
@@ -71,6 +72,8 @@ export async function GET() {
       e instanceof Error && e.cause instanceof Error
         ? e.cause.message
         : undefined;
+    const detail = [msg, cause].filter(Boolean).join(" · ");
+    const extra = hintForBackendFetchFailure(detail);
     return Response.json(
       {
         ok: false,
@@ -80,6 +83,7 @@ export async function GET() {
         cause,
         hint:
           "Keep cloudflared (or your tunnel) + uvicorn on the same machine. Quick trycloudflare URLs change when cloudflared restarts—update Vercel RAG_BACKEND_URL and redeploy.",
+        ...(extra ? { actionHint: extra } : {}),
       },
       { status: 502 },
     );

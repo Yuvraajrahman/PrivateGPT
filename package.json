@@ -1,0 +1,21 @@
+{
+  "name": "privategpt",
+  "private": true,
+  "description": "One command local dev: start LM Studio (:1234), then `npm run dev` — FastAPI + Next.js.",
+  "scripts": {
+    "dev": "node scripts/dev-banner.cjs && concurrently -k -n api,web -c blue,magenta \"node scripts/dev-backend.cjs\" \"npm run dev --prefix web\"",
+    "dev:web": "npm run dev --prefix web",
+    "dev:api": "node scripts/dev-backend.cjs",
+    "build": "npm run build --prefix web",
+    "start": "npm run start --prefix web",
+    "lint": "npm run lint --prefix web",
+    "vercel:login": "vercel login",
+    "vercel:sync-env": "node scripts/vercel-sync-rag-env.cjs",
+    "vercel:link": "vercel link --cwd web",
+    "vercel:deploy": "vercel deploy --cwd web --prod"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "vercel": "^53.4.0"
+  }
+}
